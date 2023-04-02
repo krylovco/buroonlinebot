@@ -2,7 +2,7 @@ import telebot
 import os
 import time
 
-bot = telebot.TeleBot("5900951813:AAHgVFyzxt6NYqRaq4mrDkQQahKg55SrhRg")
+bot = telebot.TeleBot("6225159605:AAHvu7ldYN5tLcHFG56i1Pu1_FQfWa7vxzM")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
