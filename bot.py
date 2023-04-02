@@ -2,13 +2,13 @@ import telegram
 from telegram.ext import Updater, CommandHandler
 
 def start(update, context):
-    context.bot.send_message(chat_id=update.message.chat_id, text='Hello, I am your bot!')
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Привет! Я бот!")
 
 def main():
-    bot_token = '6225159605:AAHvu7ldYN5tLcHFG56i1Pu1_FQfWa7vxzM'
-    updater = Updater(bot_token)
+    bot_token = "6225159605:AAHvu7ldYN5tLcHFG56i1Pu1_FQfWa7vxzM"
+    updater = Updater(bot_token, use_context=True)
     dp = updater.dispatcher
-    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CommandHandler("start", start))
     updater.start_polling()
     updater.idle()
 
