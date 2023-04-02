@@ -1,10 +1,10 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, MessageFilters
 from PIL import Image
 import pytesseract
 
 
-TOKEN = 'ВАШ_ТОКЕН'
+TOKEN = 'ваш_токен_бота'
 
 def start(update, context):
     update.message.reply_text('Привет! Отправь мне изображение с текстом, и я посчитаю количество символов на нем.')
@@ -27,7 +27,7 @@ def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(MessageHandler(Filters.photo, count_chars))
+    dp.add_handler(MessageHandler(MessageFilters.photo, count_chars))
     updater.start_polling()
     updater.idle()
 
