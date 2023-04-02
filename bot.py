@@ -51,19 +51,21 @@ def handle_additional_docs(message, file_name):
         bot.reply_to(message, "Желаете оформить заказ?")
         bot.register_next_step_handler(message, handle_order_confirmation, file_name, price)
 
-def some_function(message):
-    # some code here
-    handle_order_confirmation(message, file_name, price)
+def handle_order_confirmation(message, file_name, price):
+    order_confirmation = message.text.lower()
 
-if order_confirmation == "да":
-    order_number = len(os.listdir('orders')) + 1
-    os.mkdir(f'orders/order_{order_number}')
-    with open(f'orders/order_{order_number}/order.txt', 'w') as f:
-        f.write(f'Номер заказа: {order_number}\n')
-    bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. Сумма к оплате: {price} руб.')
-else:
-    print('Ваш заказ не был оформлен.')
+    if order_confirmation == "да":
+        order_number = len(os.listdir('orders')) + 1
+        os.mkdir(f'orders/order_{order_number}')
+        with open(f'orders/order_{order_number}/order.txt', 'w') as f:
+            f.write(f'Номер заказа: {order_number}\n')
+            f.write(f'Файл для перевода: {file_name}\n')
+            f.write(f'Объем документа: {len(open(file_name, "r", encoding="utf-8").read())} символов\n')
+            f.write(f'Стоимость: {price} руб.\n')
+        bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. Сумма к оплате: {price} руб.')
 
-# Отправляем пользователю информацию о заказе
-bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
-                                  f'Если у вас возникнут вопросы, обращайтесь к нам в любое удобное время!')
+        # Отправляем пользователю информацию о заказе
+        bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
+                                          f'Если у вас возникнут вопросы, обращайтесь к нам в любое удобное время!')
+    else:
+        print('Ваш заказ не был оформлен.')
