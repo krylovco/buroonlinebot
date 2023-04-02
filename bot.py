@@ -73,10 +73,12 @@ def handle_order_confirmation(message, file_name, price):
         bot.register_next_step_handler(msg, process_order_confirmation, first_doc_price, second_doc_price, order_folder_path)
 
 try:
+    
 except Exception as e:
     bot.reply_to(message, 'Ошибка сервера, попробуйте еще раз позже')
     def process_order_confirmation(message, first_doc_price, second_doc_price, order_folder_path):
 try:
+    
 confirmation = message.text.lower()
 if confirmation == "да":
 order_num = len(os.listdir(order_folder_path)) + 1
