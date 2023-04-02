@@ -1,71 +1,85 @@
-import telebot
 import os
-import time
+from io import BytesIO
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from PIL import Image
+from PyPDF2 import PdfFileReader
+import docx
 
-bot = telebot.TeleBot("6225159605:AAHvu7ldYN5tLcHFG56i1Pu1_FQfWa7vxzM")
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Добрый день! Я бот-менеджер бюро переводов. Я смогу рассчитать стоимость вашего заказа и помочь в его оформлении.")
+# Функция для расчета количества символов в изображении
+def count_characters_in_image(image_file):
+    with Image.open(image_file) as img:
+        text = pytesseract.image_to_string(img)
+    return len(text.strip())
 
-@bot.message_handler(commands=['help'])
-def send_help(message):
-    bot.reply_to(message, "Чтобы рассчитать стоимость заказа, загрузите документ или изображение и следуйте инструкциям.")
+# Функция для расчета количества символов в PDF
+def count_characters_in_pdf(pdf_file):
+    with open(pdf_file, 'rb') as f:
+        pdf = PdfFileReader(f)
+        num_pages = pdf.getNumPages()
+        total_characters = 0
+        for i in range(num_pages):
+            page = pdf.getPage(i)
+            text = page.extractText()
+            total_characters += len(text.strip())
+    return total_characters
 
-@bot.message_handler(content_types=['document', 'photo'])
-def handle_docs_photo(message):
-    chat_id = message.chat.id
-    file_id = message.photo[-1].file_id if message.photo else message.document.file_id
-    file_info = bot.get_file(file_id)
-    downloaded_file = bot.download_file(file_info.file_path)
-    file_name = file_info.file_path.split('/')[-1]
+# Функция для расчета количества символов в документе Word
+def count_characters_in_docx(docx_file):
+    doc = docx.Document(docx_file)
+    full_text = []
+    for para in doc.paragraphs:
+        full_text.append(para.text)
+    return len(' '.join(full_text))
 
-    with open(file_name, 'wb') as new_file:
-        new_file.write(downloaded_file)
 
-    bot.reply_to(message, "Файл успешно загружен. Будут ли еще страницы этого документа?")
-    bot.register_next_step_handler(message, handle_additional_pages, file_name)
+# Обработчик команды /start
+def start_handler(update: Update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Привет! Я бот для расчета количества символов в файлах.")
 
-def handle_additional_pages(message, file_name):
-    additional_pages = message.text.lower()
-    if additional_pages == "да":
-        bot.reply_to(message, "Отлично, загрузите еще страницы.")
-        bot.register_next_step_handler(message, handle_docs_photo)
+# Обработчик сообщений с файлами
+def file_handler(update: Update, context):
+    # Получаем информацию о файле
+    file_id = update.message.document.file_id
+    file_name = update.message.document.file_name
+    file_size = update.message.document.file_size
+
+    # Скачиваем файл
+    file_data = BytesIO()
+    update.message.document.get_file().download(out=file_data)
+    file_data.seek(0)
+
+    # Расчитываем количество символов в файле
+    if file_name.endswith('.pdf'):
+        num_characters = count_characters_in_pdf(file_data)
+    elif file_name.endswith('.docx'):
+        num_characters = count_characters_in_docx(file_data)
+    elif file_name.endswith('.jpg') or file_name.endswith('.jpeg') or file_name.endswith('.png'):
+        num_characters = count_characters_in_image(file_data)
     else:
-        bot.reply_to(message, "Будут ли еще другие документы для перевода?")
-        bot.register_next_step_handler(message, handle_additional_docs, file_name)
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Извините, я не могу обработать этот тип файла.")
+        return
 
-def handle_additional_docs(message, file_name):
-    additional_docs = message.text.lower()
-    if additional_docs == "да":
-        bot.reply_to(message, "Отлично, загрузите следующий документ.")
-        bot.register_next_step_handler(message, handle_docs_photo)
-    else:
-        with open(file_name, 'r', encoding='utf-8') as f:
-            file_content = f.read()
-            symbols_count = len(file_content)
+    # Отправляем сообщение с результатом
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f"Файл {file_name} содержит {num_characters} символов.")
 
-        price = round(symbols_count / 1800 * 580, 2)
 
-        bot.reply_to(message, f"Объем документа: {symbols_count} символов. Ориентировочная стоимость услуги: {price} руб.")
-        bot.reply_to(message, "Желаете оформить заказ?")
-        bot.register_next_step_handler(message, handle_order_confirmation, file_name, price)
+def main():
+    # Получаем токен из переменной окружения
+    token = os.environ.get('TELEGRAM_BOT_TOKEN')
 
-def handle_order_confirmation(message, file_name, price):
-    order_confirmation = message.text.lower()
+    # Создаем объект updater и передаем ему токен
+    updater = Updater(token, use_context=True)
 
-    if order_confirmation == "да":
-        order_number = len(os.listdir('orders')) + 1
-        os.mkdir(f'orders/order_{order_number}')
-        with open(f'orders/order_{order_number}/order.txt', 'w') as f:
-            f.write(f'Номер заказа: {order_number}\n')
-            f.write(f'Файл для перевода: {file_name}\n')
-            f.write(f'Объем документа: {len(open(file_name, "r", encoding="utf-8").read())} символов\n')
-            f.write(f'Стоимость: {price} руб.\n')
-        bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. Сумма к оплате: {price} руб.')
+    # Получаем объект dispatcher для регистрации обработчиков
+    dispatcher = updater.dispatcher
 
-        # Отправляем пользователю информацию о заказе
-        bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
-                                          f'Если у вас возникнут вопросы, обращайтесь к нам в любое удобное время!')
-    else:
-        print('Ваш заказ не был оформлен.')
+    # Регистрируем обработчики команд
+    dispatcher.add_handler(CommandHandler('start', start_handler))
+
+    # Регистрируем обработчик сообщений с файлами
+    dispatcher.add_handler(MessageHandler(Filters.document, file_handler))
+
+    # Запускаем бота
+    updater
