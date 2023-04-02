@@ -2,7 +2,7 @@ import telebot
 import os
 import time
 
-bot = telebot.TeleBot("5900951813:AAHgVFyzxt6NYqRaq4mrDkQQahKg55SrhRg")
+bot = telebot.TeleBot("YOUR_TOKEN_HERE")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -53,13 +53,14 @@ def handle_additional_docs(message, file_name):
 
 def handle_order_confirmation(message, file_name, price):
     order_confirmation = message.text.lower()
-if order_confirmation == "да":
-    order_number = len(os.listdir('orders')) + 1
-    os.mkdir(f'orders/order_{order_number}')
-    print(f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}.')
-else:
-    print('Ваш заказ не был оформлен.')
-    
+    if order_confirmation == "да":
+        order_number = len(os.listdir('orders')) + 1
+        os.mkdir(f'orders/order_{order_number}')
+        print(f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}.')
+        
+        # Записываем информацию о заказе в файл
+        with open(f'orders/order_{order_number}/order.txt', 'w') as f:
+            f.write(f'Номер заказа: {order_number}\n')
 # Записываем информацию о заказе в файл
 if order_confirmation == "да":
     with open(f'orders/order_{order_number}/order.txt', 'w') as f:
@@ -69,4 +70,3 @@ if order_confirmation == "да":
         f.write(f'Адрес: {address}\n')
         f.write(f'Заказ: {", ".join(items)}\n')
         f.write(f'Сумма заказа: {total_price} руб.\n')
-
