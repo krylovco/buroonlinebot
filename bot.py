@@ -51,20 +51,21 @@ def handle_additional_docs(message, file_name):
         bot.reply_to(message, "Желаете оформить заказ?")
         bot.register_next_step_handler(message, handle_order_confirmation, file_name, price)
 
+def some_function(message):
+    # some code here
+    handle_order_confirmation(message, file_name, price)
+
 def handle_order_confirmation(message, file_name, price):
     order_confirmation = message.text.lower()
     if order_confirmation == "да":
         order_number = len(os.listdir('orders')) + 1
         os.mkdir(f'orders/order_{order_number}')
-        print(f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}.')
-        
-        # Записываем информацию о заказе в файл
         with open(f'orders/order_{order_number}/order.txt', 'w') as f:
             f.write(f'Номер заказа: {order_number}\n')
-            f.write(f'Название товара: {file_name}\n')
-            f.write(f'Цена товара: {price}\n')
+        bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
+                                          f'Стоимость заказа: {price} руб.')
     else:
-        print('Ваш заказ не был оформлен.')
+        bot.send_message(message.chat.id, 'Ваш заказ не был оформлен. Попробуйте сделать заказ еще раз.')
 
 # Отправляем пользователю информацию о заказе
 bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
