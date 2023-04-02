@@ -57,16 +57,18 @@ def handle_order_confirmation(message, file_name, price):
         order_number = len(os.listdir('orders')) + 1
         os.mkdir(f'orders/order_{order_number}')
         print(f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}.')
-        
-        # Записываем информацию о заказе в файл
-        with open(f'orders/order_{order_number}/order.txt', 'w') as f:
-            f.write(f'Номер заказа: {order_number}\n')
+    else:
+        print('Ваш заказ не был оформлен. Если у вас возникнут вопросы, обращайтесь к нам в любое удобное время!')
 # Записываем информацию о заказе в файл
-if order_confirmation == "да":
-    with open(f'orders/order_{order_number}/order.txt', 'w') as f:
-        f.write(f'Номер заказа: {order_number}\n')
-        f.write(f'Имя: {name}\n')
-        f.write(f'Телефон: {phone}\n')
-        f.write(f'Адрес: {address}\n')
-        f.write(f'Заказ: {", ".join(items)}\n')
-        f.write(f'Сумма заказа: {total_price} руб.\n')
+with open(f'orders/order_{order_number}/order.txt', 'w') as f:
+    f.write(f'Номер заказа: {order_number}\n')
+    f.write(f'Название товара: {file_name}\n')
+    f.write(f'Цена: {price}\n')
+
+# Отправляем пользователю фото товара
+with open(file_name, 'rb') as f:
+    bot.send_photo(message.chat.id, f)
+
+# Отправляем пользователю информацию о заказе
+bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
+                                  f'Если у вас возникнут вопросы, обращайтесь к нам в любое удобное время!')
