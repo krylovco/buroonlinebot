@@ -55,17 +55,14 @@ def some_function(message):
     # some code here
     handle_order_confirmation(message, file_name, price)
 
-def handle_order_confirmation(message, file_name, price):
-    order_confirmation = message.text.lower()
-    if order_confirmation == "да":
-        order_number = len(os.listdir('orders')) + 1
-        os.mkdir(f'orders/order_{order_number}')
-        with open(f'orders/order_{order_number}/order.txt', 'w') as f:
-            f.write(f'Номер заказа: {order_number}\n')
-        bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
-                                          f'Стоимость заказа: {price} руб.')
-    else:
-        bot.send_message(message.chat.id, 'Ваш заказ не был оформлен. Попробуйте сделать заказ еще раз.')
+if order_confirmation == "да":
+    order_number = len(os.listdir('orders')) + 1
+    os.mkdir(f'orders/order_{order_number}')
+    with open(f'orders/order_{order_number}/order.txt', 'w') as f:
+        f.write(f'Номер заказа: {order_number}\n')
+    bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. Сумма к оплате: {price} руб.')
+else:
+    print('Ваш заказ не был оформлен.')
 
 # Отправляем пользователю информацию о заказе
 bot.send_message(message.chat.id, f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}. '
