@@ -1,4 +1,4 @@
-    import telegram
+import telegram
 from telegram.ext import Updater, CommandHandler
 
 def start(update, context):
