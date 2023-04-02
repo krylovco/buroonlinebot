@@ -4,7 +4,7 @@ from PIL import Image
 import pytesseract
 
 
-TOKEN = '6225159605:AAHvu7ldYN5tLcHFG56i1Pu1_FQfWa7vxzM'
+TOKEN = 'ВАШ_ТОКЕН'
 
 def start(update, context):
     update.message.reply_text('Привет! Отправь мне изображение с текстом, и я посчитаю количество символов на нем.')
@@ -31,5 +31,5 @@ def main():
     updater.start_polling()
     updater.idle()
 
-if __name__ == '__bot__':
+if __name__ == '__main__':
     main()
