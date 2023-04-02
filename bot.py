@@ -6,7 +6,7 @@ from PIL import Image
 from PyPDF2 import PdfFileReader
 import docx
 
-
+rrrrtr
 # Функция для расчета количества символов в изображении
 def count_characters_in_image(image_file):
     with Image.open(image_file) as img:
