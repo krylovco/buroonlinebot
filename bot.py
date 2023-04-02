@@ -53,7 +53,7 @@ def handle_additional_docs(message, file_name):
 
 def handle_order_confirmation(message, file_name, price):
     order_confirmation = message.text.lower()
-    if order_confirmation == "да":
+if order_confirmation == "да":
     order_number = len(os.listdir('orders')) + 1
     os.mkdir(f'orders/order_{order_number}')
     print(f'Ваш заказ был успешно оформлен. Номер вашего заказа: {order_number}.')
