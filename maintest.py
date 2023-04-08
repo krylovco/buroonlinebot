@@ -11,11 +11,7 @@ def start(update, context):
     update.message.reply_text('Привет! Я бот, который может распознавать текст на изображении, PDF- и Word-файлах. Пришли мне файл и я скажу тебе, сколько символов в нем!')
 
 from datetime import datetime
-
 import time
-from telegram import Update
-from telegram import ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import CallbackContext
 
 # функция, которая будет вызываться при получении изображения
 def image(update, context):
@@ -45,36 +41,6 @@ def image(update, context):
         text = pytesseract.image_to_string(img, lang='eng')
         count = len(text)
         update.message.reply_text(f'На изображении {count} символов')
-    # создаем кнопки и отправляем их пользователю
-    keyboard = [[KeyboardButton('Загрузить еще фотографию'), KeyboardButton('Рассчитать стоимость документа')]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
-
-# функция, которая будет вызываться при нажатии на кнопку "Рассчитать стоимость документа"
-def calculate_price(update, context):
-    # проверяем, есть ли фотографии в списке
-    if 'photos' not in context.chat_data or len(context.chat_data['photos']) == 0:
-        update.message.reply_text('Пожалуйста, загрузите фотографии с текстом, чтобы мы могли рассчитать стоимость документа!')
-        return
-
-    # считаем общее количество символов на всех фотографиях
-    total_count = 0
-    for photo_path in context.chat_data['photos']:
-        img = Image.open(photo_path)
-        text = pytesseract.image_to_string(img, lang='eng')
-        count = len(text)
-        total_count += count
-    # вычисляем стоимость на основе количества символов
-    price_per_symbol = 0.01  # цена за один символ (можно заменить на свою)
-    price = total_count * price_per_symbol
-
-    # отправляем сообщение пользователю с результатом
-    update.message.reply_text(f'Стоимость документа: {price} руб')
-
-    # создаем кнопки и отправляем их пользователю
-    keyboard = [[KeyboardButton('Загрузить еще фотографию'), KeyboardButton('Рассчитать стоимость документа')]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
 
 # функция, которая будет вызываться при получении pdf-файла
 from pdf2image import convert_from_path
