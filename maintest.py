@@ -13,8 +13,12 @@ def start(update, context):
 from datetime import datetime
 import time
 
+from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext, CommandHandler, CallbackQueryHandler
+
 # функция, которая будет вызываться при получении изображения
-def image(update, context):
+def image(update: Update, context: CallbackContext):
     # получаем файл из сообщения
     photo_file = update.message.photo[-1].get_file()
     # создаем список для хранения фотографий, если его нет
@@ -41,6 +45,41 @@ def image(update, context):
         text = pytesseract.image_to_string(img, lang='eng')
         count = len(text)
         update.message.reply_text(f'На изображении {count} символов')
+
+    # создаем кнопки и отправляем их пользователю
+    keyboard = [
+        [InlineKeyboardButton('Добавить еще фотографию документа', callback_data='add_photo')],
+        [InlineKeyboardButton('Рассчитать стоимость перевода', callback_data='calculate_translation_price')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
+
+
+# функция для кнопки "Добавить еще фотографию документа"
+def add_photo(update: Update, context: CallbackContext):
+    # считаем общее количество символов на всех фотографиях
+    total_count = 0
+    for photo_path in context.chat_data['photos']:
+        img = Image.open(photo_path)
+        text = pytesseract.image_to_string(img, lang='eng')
+        count = len(text)
+        total_count += count
+# вычисляем стоимость на основе количества символов
+    price_per_symbol = 0.01  # цена за один символ (можно заменить на свою)
+    price = total_count * price_per_symbol
+
+# отправляем сообщение с результатом в виде ответа на нажатие кнопки
+    update.callback_query.answer(f'Стоимость перевода: {price} руб')
+
+# создаем кнопку "Добавить еще фотографию документа"
+    add_photo_button = InlineKeyboardButton('Добавить еще фотографию документа', callback_data='add_photo')
+# создаем Inline клавиатуру с кнопкой "Добавить еще фотографию документа"
+    keyboard = [[add_photo_button]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+# отправляем сообщение с новой клавиатурой
+    update.callback_query.edit_message_text(text='Выберите действие:', reply_markup=reply_markup)
+
 
 # функция, которая будет вызываться при получении pdf-файла
 from pdf2image import convert_from_path
@@ -94,6 +133,7 @@ def main():
     # создаем объект для взаимодействия с Telegram API
     global updater
     updater = Updater(bot.token, use_context=True)
+    dispatcher = updater.dispatcher
 
     # создаем обработчики команд и сообщений
     start_handler = CommandHandler('start', start)
